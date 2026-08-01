@@ -2019,18 +2019,24 @@ export function TourViewer({ data }: { data: TourData }) {
             {/* Media Content */}
             <div className="flex-1 overflow-auto rounded-xl bg-black/40 border border-white/5 p-2 flex items-center justify-center">
               {showMedia.type === 'VIDEO' && (
-                <video src={showMedia.url} controls className="max-w-full max-h-[60vh] rounded-lg shadow-lg" autoPlay />
+                <video 
+                  src={getMediaUrl(showMedia.url)} 
+                  controls 
+                  playsInline 
+                  className="max-w-full max-h-[60vh] rounded-lg shadow-lg" 
+                  autoPlay 
+                />
               )}
               {showMedia.type === 'IMAGE' && (
-                <img src={showMedia.url} alt={showMedia.label} className="max-w-full max-h-[60vh] rounded-lg shadow-lg object-contain" />
+                <img src={getMediaUrl(showMedia.url)} alt={showMedia.label} className="max-w-full max-h-[60vh] rounded-lg shadow-lg object-contain" />
               )}
               {showMedia.type === 'PDF' && (
                 <div className="w-full flex flex-col items-center gap-3">
-                  <iframe src={showMedia.url} className="w-full h-[55vh] rounded-lg border border-white/5 bg-black/20" />
+                  <iframe src={getMediaUrl(showMedia.url)} className="w-full h-[55vh] rounded-lg border border-white/5 bg-black/20" />
                   <div className="flex items-center gap-2">
                     <span className="text-xs text-white/50">Can't see the document preview?</span>
                     <a
-                      href={showMedia.url}
+                      href={getMediaUrl(showMedia.url)}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-indigo-600/90 hover:bg-indigo-500 text-white text-xs font-semibold transition-all hover:scale-105 active:scale-95"
