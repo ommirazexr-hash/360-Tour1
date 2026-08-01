@@ -58,6 +58,9 @@ function enableStandaloneMode() {
 // ─── Standalone Mock Handlers ───────────────────────────────────────────────
 
 async function handleStandaloneGet<T>(path: string, params?: any): Promise<T> {
+  // Auto-seed database from server's static tour-data.json if this is a new browser/device
+  await db.initializeStandaloneDb();
+
   const cleanPath = path.replace(/^\//, '').replace(/\/$/, '');
   
   if (cleanPath === 'project') {

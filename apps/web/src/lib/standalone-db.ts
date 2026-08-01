@@ -56,7 +56,7 @@ function openDb(): Promise<IDBDatabase> {
 
 export async function saveAsset(id: string, name: string, category: string, file: Blob): Promise<void> {
   const db = await openDb();
-  return new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(transaction.objectStoreNames[0] || STORE_NAME);
     const asset: StoredAsset = {
@@ -70,6 +70,19 @@ export async function saveAsset(id: string, name: string, category: string, file
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
   });
+
+  // Sync to localStorage project metadata
+  const data = getRawTourData();
+  if (!data.assets) data.assets = [];
+  data.assets = data.assets.filter((a: any) => a.id !== id);
+  data.assets.push({
+    id,
+    name,
+    category,
+    fileSize: file.size,
+    createdAt: new Date().toISOString(),
+  });
+  saveRawTourData(data);
 }
 
 export async function getAssetBlob(id: string): Promise<Blob | null> {
@@ -88,13 +101,20 @@ export async function getAssetBlob(id: string): Promise<Blob | null> {
 
 export async function deleteAsset(id: string): Promise<void> {
   const db = await openDb();
-  return new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(transaction.objectStoreNames[0] || STORE_NAME);
     const request = store.delete(id);
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve();
   });
+
+  // Remove from localStorage project metadata
+  const data = getRawTourData();
+  if (data.assets) {
+    data.assets = data.assets.filter((a: any) => a.id !== id);
+    saveRawTourData(data);
+  }
 }
 
 export async function listAssets(category?: string): Promise<any[]> {
@@ -128,7 +148,7 @@ const objectUrlCache = new Map<string, string>();
 /**
  * Resolves virtual URLs like /uploads/asset_xxx to temporary Blob URLs.
  */
-export async function resolveUrl(url: string | null | undefined): Promise<string> {
+export async function resolveUrl(url: string | null | undefined, customAssets?: any[]): Promise<string> {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
@@ -160,10 +180,19 @@ export async function resolveUrl(url: string | null | undefined): Promise<string
     console.error(`Failed to resolve asset Blob for key: ${id}`, err);
   }
 
-  // Fallback: If loading statically from the public folder and the URL does not have an extension,
-  // append .jpg so the browser can request the actual static file (e.g., scene_123.jpg).
-  if (url.startsWith('/uploads/') && !url.includes('.')) {
-    return `${url}.jpg`;
+  // Fallback: If loading statically from the public folder, look up the asset in the assets list
+  // to find its actual filename with the correct extension.
+  if (url.startsWith('/uploads/')) {
+    const assets = customAssets || getRawTourData()?.assets || [];
+    const asset = assets.find((a: any) => a.id === id);
+    if (asset) {
+      return `/uploads/${asset.name}`;
+    }
+    
+    // Secondary fallback: if it has no dot, assume it's a panorama and append .jpg
+    if (!id.includes('.')) {
+      return `/uploads/${id}.jpg`;
+    }
   }
 
   return url;
@@ -405,6 +434,36 @@ export function getRawTourData(): StandaloneTourData {
 export function saveRawTourData(data: StandaloneTourData): void {
   if (typeof window !== 'undefined') {
     localStorage.setItem(TOUR_DATA_KEY, JSON.stringify(data));
+  }
+}
+
+export async function initializeStandaloneDb(): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  const isSeeded = localStorage.getItem('vt_storage_seeded');
+  if (isSeeded) return; // Already seeded, don't overwrite user's local edits
+
+  try {
+    const res = await fetch('/tour-data.json');
+    if (res.ok) {
+      const json = await res.json();
+      if (json && json.project) {
+        // Seed localStorage
+        localStorage.setItem(TOUR_DATA_KEY, JSON.stringify({
+          project: json.project,
+          branding: json.branding || DEFAULT_BRANDING,
+          scenes: json.scenes || [],
+          guidedTour: json.guidedTour || [],
+          assets: json.assets || []
+        }));
+        
+        // Mark as seeded so we don't fetch and overwrite again
+        localStorage.setItem('vt_storage_seeded', 'true');
+        console.log('Successfully seeded local builder storage from server static tour-data.json');
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to seed local builder storage from server static tour-data.json', e);
   }
 }
 
@@ -662,7 +721,7 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
   const data = getRawTourData();
   const assets: Array<{ id: string; name: string; blob: Blob }> = [];
 
-  // Iterate over all scenes to gather local IndexedDB assets
+  // 1. Scan scenes to gather local IndexedDB panoramas
   for (const scene of data.scenes) {
     if (scene.panoramaUrl && scene.panoramaUrl.startsWith('/uploads/')) {
       const id = scene.panoramaUrl.split('/').pop()!;
@@ -673,12 +732,27 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
     }
   }
 
-  // Iterate over all spots or branding elements
+  // 2. Scan all general assets uploaded in the database
+  if (data.assets && Array.isArray(data.assets)) {
+    for (const a of data.assets) {
+      // Avoid adding panorama files twice
+      if (assets.some(x => x.id === a.id)) continue;
+      
+      const blob = await getAssetBlob(a.id);
+      if (blob) {
+        assets.push({ id: a.id, name: a.name, blob });
+      }
+    }
+  }
+
+  // 3. Scan branding logo
   if (data.branding.logoUrl && data.branding.logoUrl.startsWith('/uploads/')) {
     const id = data.branding.logoUrl.split('/').pop()!;
-    const blob = await getAssetBlob(id);
-    if (blob) {
-      assets.push({ id, name: `${id}`, blob });
+    if (!assets.some(x => x.id === id)) {
+      const blob = await getAssetBlob(id);
+      if (blob) {
+        assets.push({ id, name: id, blob });
+      }
     }
   }
 
@@ -687,7 +761,8 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
       project: data.project,
       branding: data.branding,
       scenes: data.scenes,
-      guidedTour: data.guidedTour
+      guidedTour: data.guidedTour,
+      assets: data.assets || []
     }, null, 2),
     assets
   };
@@ -702,10 +777,11 @@ export async function getViewerDataForClient(): Promise<any> {
         if (json && json.scenes) {
           // Resolve panorama and thumbnail URLs (in case they point to LocalStorage/IndexedDB blobs)
           const resolvedScenes = await Promise.all(json.scenes.map(async (scene: any) => {
-            const panoramaUrl = await resolveUrl(scene.panoramaUrl);
-            const thumbnailUrl = await resolveUrl(scene.thumbnailUrl);
+            const panoramaUrl = await resolveUrl(scene.panoramaUrl, json.assets);
+            const thumbnailUrl = await resolveUrl(scene.thumbnailUrl, json.assets);
             const resolvedHotspots = scene.hotspots ? await Promise.all(scene.hotspots.map(async (hs: any) => {
-              const targetAssetUrl = await resolveUrl(hs.targetAssetUrl || hs.targetUrl);
+              const targetUrl = hs.targetAssetUrl || hs.targetUrl;
+              const targetAssetUrl = await resolveUrl(targetUrl, json.assets);
               return {
                 ...hs,
                 targetAssetUrl,
@@ -719,9 +795,20 @@ export async function getViewerDataForClient(): Promise<any> {
               hotspots: resolvedHotspots
             };
           }));
+
+          // Resolve guided tour audio steps
+          const resolvedGuidedTour = json.guidedTour ? await Promise.all(json.guidedTour.map(async (step: any) => {
+            const audioUrl = await resolveUrl(step.audioUrl, json.assets);
+            return {
+              ...step,
+              audioUrl
+            };
+          })) : [];
+
           return {
             ...json,
-            scenes: resolvedScenes
+            scenes: resolvedScenes,
+            guidedTour: resolvedGuidedTour
           };
         }
       }
