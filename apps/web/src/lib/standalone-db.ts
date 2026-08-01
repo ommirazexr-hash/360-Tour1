@@ -240,8 +240,8 @@ export async function resolveUrl(url: string | null | undefined, customAssets?: 
       return `/uploads/${asset.name}`;
     }
     
-    // Secondary fallback: if it has no dot, assume it's a panorama and append .jpg
-    if (!id.includes('.')) {
+    // Secondary fallback: if it has no dot and is a scene ID, assume it's a panorama and append .jpg
+    if (!id.includes('.') && id.startsWith('scene_')) {
       return `/uploads/${id}.jpg`;
     }
   }
@@ -783,13 +783,23 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
   });
 
   // Rebuild the assets metadata list dynamically from IndexedDB database
-  const dataAssets = dbAssets.map(a => ({
+  const localMetadata = dbAssets.map(a => ({
     id: a.id,
     name: a.category === 'PANORAMA' ? `${a.id}.jpg` : a.name,
     category: a.category,
     fileSize: a.file ? a.file.size : 0,
     createdAt: a.uploadedAt || new Date().toISOString()
   }));
+
+  // Merge with existing assets in localStorage to preserve previous uploads mapping
+  const existingMetadata = data.assets || [];
+  const mergedMetadata = [...localMetadata];
+
+  for (const ext of existingMetadata) {
+    if (!mergedMetadata.some(m => m.id === ext.id)) {
+      mergedMetadata.push(ext);
+    }
+  }
 
   // Package all files with their correct names and extensions
   for (const a of dbAssets) {
@@ -808,7 +818,7 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
       branding: data.branding,
       scenes: data.scenes,
       guidedTour: data.guidedTour,
-      assets: dataAssets
+      assets: mergedMetadata
     }, null, 2),
     assets
   };
