@@ -136,8 +136,14 @@ export async function resolveUrl(url: string | null | undefined): Promise<string
 
   // Extract ID from path (e.g. /uploads/asset_123 -> asset_123)
   const parts = url.split('/');
-  const id = parts[parts.length - 1];
+  let id = parts[parts.length - 1];
   if (!id) return url;
+
+  // Strip extension if it exists to query IndexedDB with the raw ID
+  const extIdx = id.indexOf('.');
+  if (extIdx !== -1) {
+    id = id.substring(0, extIdx);
+  }
 
   if (objectUrlCache.has(id)) {
     return objectUrlCache.get(id)!;
@@ -152,6 +158,12 @@ export async function resolveUrl(url: string | null | undefined): Promise<string
     }
   } catch (err) {
     console.error(`Failed to resolve asset Blob for key: ${id}`, err);
+  }
+
+  // Fallback: If loading statically from the public folder and the URL does not have an extension,
+  // append .jpg so the browser can request the actual static file (e.g., scene_123.jpg).
+  if (url.startsWith('/uploads/') && !url.includes('.')) {
+    return `${url}.jpg`;
   }
 
   return url;
