@@ -1,0 +1,38 @@
+{
+  "name": "virtual-tour-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "360° Virtual Tour Platform — Create and publish interactive virtual tours",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "db:studio": "prisma studio",
+    "db:generate": "prisma generate",
+    "docker:dev": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d",
+    "docker:prod": "docker compose up -d --build",
+    "docker:down": "docker compose down",
+    "clean": "turbo run clean && rimraf node_modules"
+  },
+  "devDependencies": {
+    "prisma": "^6.8.0",
+    "rimraf": "^6.0.0",
+    "tsx": "^4.19.0",
+    "turbo": "^2.5.0",
+    "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.8.0",
+    "@types/bcryptjs": "^3.0.0",
+    "bcryptjs": "^3.0.3"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  }
+}

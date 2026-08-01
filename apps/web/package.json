@@ -1,0 +1,46 @@
+{
+  "name": "@vt/web",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .next"
+  },
+  "dependencies": {
+    "@dnd-kit/core": "^6.3.0",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@photo-sphere-viewer/autorotate-plugin": "5.14.1",
+    "@photo-sphere-viewer/core": "^5.11.5",
+    "@photo-sphere-viewer/markers-plugin": "^5.11.5",
+    "@vt/shared": "workspace:*",
+    "axios": "^1.7.0",
+    "date-fns": "^4.1.0",
+    "jszip": "^3.10.1",
+    "lucide-react": "^0.469.0",
+    "next": "^15.3.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-dropzone": "^14.3.0",
+    "react-hot-toast": "^2.5.0",
+    "react-photo-sphere-viewer": "^6.2.3",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/jszip": "^3.4.1",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.1",
+    "eslint-config-next": "^15.5.19",
+    "postcss": "^8.5.0",
+    "rimraf": "^6.0.0",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.7.0"
+  }
+}

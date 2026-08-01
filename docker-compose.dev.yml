@@ -1,0 +1,17 @@
+# Development override — only starts the database
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up db -d
+version: '3.8'
+
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  api:
+    profiles: ["production"]
+
+  web:
+    profiles: ["production"]
+
+  nginx:
+    profiles: ["production"]

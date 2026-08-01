@@ -1,0 +1,16 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "composite": false,
+    "declaration": false,
+    "declarationMap": false,
+    "paths": {
+      "@vt/shared": ["../../packages/shared/src"]
+    }
+  },
+  "include": ["src/**/*", "../../packages/shared/src/**/*"],
+  "exclude": ["node_modules", "dist", "uploads"]
+}

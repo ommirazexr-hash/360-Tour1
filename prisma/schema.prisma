@@ -1,0 +1,357 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ADMIN (Seed-only, no CRUD UI) ───────────────────
+
+model Admin {
+  id           String    @id @default(uuid())
+  username     String    @unique
+  email        String    @unique
+  passwordHash String
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("admins")
+}
+
+// ─── PROJECT ──────────────────────────────────────────
+
+model Project {
+  id               String            @id @default(uuid())
+  name             String
+  slug             String            @unique
+  companyName      String?
+  description      String?           @db.Text
+  isPublished      Boolean           @default(false)
+  publishedAt      DateTime?
+  guidedTourEnabled Boolean          @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  deletedAt        DateTime?         // Soft delete
+
+  scenes           Scene[]
+  leads            Lead[]
+  branding         ProjectBranding?
+  guidedSteps      GuidedTourStep[]
+  avatars          Avatar[]
+
+  @@index([slug])
+  @@index([isPublished])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+// ─── PROJECT BRANDING ─────────────────────────────────
+
+model ProjectBranding {
+  id               String   @id @default(uuid())
+  projectId        String   @unique
+
+  // Logo
+  logoAssetId      String?
+  logoPosition     String   @default("top-left")
+  logoSize         String   @default("medium")
+
+  // Cover
+  coverAssetId     String?
+
+  // Colors
+  primaryColor     String   @default("#6366f1")
+  secondaryColor   String   @default("#818cf8")
+  backgroundColor  String   @default("#000000")
+  textColor        String   @default("#ffffff")
+
+  // Viewer config
+  autoRotate       Boolean  @default(false)
+  autoRotateSpeed  Float    @default(1.0)
+  showControls     Boolean  @default(true)
+  showSceneMenu    Boolean  @default(true)
+
+  // Contact info displayed in viewer
+  contactEmail     String?
+  contactPhone     String?
+  websiteUrl       String?
+
+  // Custom welcome message
+  welcomeTitle     String?
+  welcomeMessage   String?  @db.Text
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  project          Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("project_brandings")
+}
+
+// ─── SCENE ────────────────────────────────────────────
+
+model Scene {
+  id                String           @id @default(uuid())
+  projectId         String
+  title             String
+  description       String?          @db.Text
+  panoramaAssetId   String?
+  thumbnailAssetId  String?
+  order             Int              @default(0)
+  isStartScene      Boolean          @default(false)
+  defaultYaw        Float            @default(0)
+  defaultPitch      Float            @default(0)
+  defaultZoom       Float            @default(50)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?         // Soft delete
+
+  // Scene-level default Avatar assignment & Explicit columns
+  defaultAvatarId                      String?
+  defaultAvatar                        Avatar?                   @relation("SceneDefaultAvatar", fields: [defaultAvatarId], references: [id], onDelete: SetNull)
+  avatarPlaybackMode                   AvatarPlaybackMode?
+  avatarPosition                       AvatarPosition?
+  avatarVolume                         Int?                      @default(80)
+  avatarMuted                          Boolean?                  @default(false)
+  avatarReplay                         Boolean?                  @default(false)
+  avatarPostPlaybackAction             AvatarPostPlaybackAction? @default(DO_NOTHING)
+  avatarPostPlaybackTargetSceneId      String?                   // Typed Scene Target
+  avatarPostPlaybackTargetAssetId      String?                   // Typed PDF/Media Asset Target
+  avatarPostPlaybackTargetUrl          String?                   // Typed External Link Target
+  avatarPostPlaybackTargetNextAvatarId String?                   // Typed Next Guide Target
+  avatarCustomPositionX                Float?                    // Left/Right offset % for CUSTOM position
+  avatarCustomPositionY                Float?                    // Bottom offset % for CUSTOM position
+  avatarScale                          Float?                    // Override display scale for spokesperson video (0.5–2.5)
+
+  project           Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  hotspots          Hotspot[]
+  guidedSteps       GuidedTourStep[]
+
+  @@index([projectId])
+  @@index([projectId, order])
+  @@map("scenes")
+}
+
+enum HotspotType {
+  SCENE_LINK
+  INFO_POPUP
+  PDF
+  VIDEO
+  IMAGE
+  EXTERNAL_URL
+  CONTACT_FORM
+  AVATAR
+}
+
+model Hotspot {
+  id            String      @id @default(uuid())
+  sceneId       String
+  label         String
+  description   String?     @db.Text
+  iconType      String      @default("default")
+  yaw           Float
+  pitch         Float
+  type          HotspotType
+  targetSceneId String?
+  targetAssetId String?
+  targetUrl     String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Hotspot-level Avatar assignment & Explicit columns
+  avatarId                             String?
+  avatar                               Avatar?                   @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+  avatarPlaybackMode                   AvatarPlaybackMode?       @default(CLICK_TO_PLAY)
+  avatarPosition                       AvatarPosition?           @default(BOTTOM_LEFT)
+  avatarVolume                         Int?                      @default(80)
+  avatarMuted                          Boolean?                  @default(false)
+  avatarReplay                         Boolean?                  @default(false)
+  avatarPostPlaybackAction             AvatarPostPlaybackAction? @default(DO_NOTHING)
+  avatarPostPlaybackTargetSceneId      String?                   // Typed Scene Target
+  avatarPostPlaybackTargetAssetId      String?                   // Typed PDF/Media Asset Target
+  avatarPostPlaybackTargetUrl          String?                   // Typed External Link Target
+  avatarPostPlaybackTargetNextAvatarId String?                   // Typed Next Guide Target
+  avatarCustomPositionX                Float?                    // Left/Right offset % for CUSTOM position
+  avatarCustomPositionY                Float?                    // Bottom offset % for CUSTOM position
+  avatarScale                          Float?                    // Override display scale for spokesperson video (0.5–2.5)
+
+  scene         Scene       @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  @@index([sceneId])
+  @@map("hotspots")
+}
+
+// ─── CENTRALIZED ASSET LIBRARY ────────────────────────
+
+enum AssetCategory {
+  PANORAMA
+  IMAGE
+  VIDEO
+  PDF
+  LOGO
+  AVATAR
+  AUDIO
+}
+
+model Asset {
+  id              String        @id @default(uuid())
+  originalName    String
+  fileName        String
+  mimeType        String
+  fileSize        Int
+  filePath        String
+  optimizedPath   String?
+  thumbnailPath   String?
+  category        AssetCategory
+  tags            String[]      @default([])
+  width           Int?
+  height          Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?     // Soft delete
+
+  // Back relations for Avatar tracking
+  avatarOriginal  Avatar?       @relation("AvatarOriginalAsset")
+  avatarOptimized Avatar?       @relation("AvatarOptimizedAsset")
+  avatarThumbnail Avatar?       @relation("AvatarThumbnailAsset")
+
+  @@index([category])
+  @@index([createdAt])
+  @@map("assets")
+}
+
+// ─── GUIDED TOUR ──────────────────────────────────────
+
+model GuidedTourStep {
+  id                 String   @id @default(uuid())
+  projectId          String
+  sceneId            String
+  order              Int      @default(0)
+  duration           Int      @default(10)
+  narrationTitle     String?
+  narrationText      String?  @db.Text
+  targetYaw          Float?
+  targetPitch        Float?
+  targetZoom         Float?
+  rotationAngle      Float?   @default(0)
+  rotationSpeed      Float?   @default(2.0)
+  audioUrl           String?  @db.Text
+  highlightHotspotId String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Avatar reference (prepared column, no UI/logic in Phase 1)
+  avatarId           String?
+  avatar             Avatar?  @relation(fields: [avatarId], references: [id], onDelete: SetNull)
+
+  project            Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scene              Scene    @relation(fields: [sceneId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, order])
+  @@map("guided_tour_steps")
+}
+
+// ─── LEAD ─────────────────────────────────────────────
+
+model Lead {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  email     String
+  phone     String?
+  message   String?  @db.Text
+  source    String?
+  createdAt DateTime @default(now())
+
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([createdAt])
+  @@index([email])
+  @@map("leads")
+}
+
+// ─── SETTINGS ─────────────────────────────────────────
+
+model Setting {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("settings")
+}
+
+// ─── SPOKESPERSON AVATAR ──────────────────────────────
+
+enum AvatarStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum AvatarPlaybackMode {
+  CLICK_TO_PLAY
+  AUTO_PLAY
+  GUIDED_TOUR
+}
+
+enum AvatarPosition {
+  BOTTOM_LEFT
+  BOTTOM_RIGHT
+  CENTER
+  CUSTOM
+}
+
+enum AvatarPostPlaybackAction {
+  DO_NOTHING
+  JUMP_TO_SCENE
+  OPEN_PDF
+  OPEN_URL
+  PLAY_NEXT_AVATAR
+}
+
+model Avatar {
+  id               String         @id @default(uuid())
+  projectId        String?        // Nullable to support global reusable library avatars
+  name             String
+  description      String?        @db.Text
+  language         String         @default("en")
+  scriptNotes      String?        @db.Text
+  duration         Float?
+  version          Int            @default(1)
+  deletedAt        DateTime?      // Soft delete
+
+  // Video Assets & Thumbnail Image
+  originalAssetId  String?        @unique
+  originalAsset    Asset?         @relation("AvatarOriginalAsset", fields: [originalAssetId], references: [id], onDelete: SetNull)
+  
+  optimizedAssetId String?        @unique
+  optimizedAsset   Asset?         @relation("AvatarOptimizedAsset", fields: [optimizedAssetId], references: [id], onDelete: SetNull)
+
+  thumbnailAssetId String?        @unique
+  thumbnailAsset   Asset?         @relation("AvatarThumbnailAsset", fields: [thumbnailAssetId], references: [id], onDelete: SetNull)
+
+  // Status & Progress Tracking
+  status           AvatarStatus   @default(PENDING)
+  progress         Int            @default(0)
+  error            String?        @db.Text
+
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  project          Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  scenes           Scene[]        @relation("SceneDefaultAvatar")
+  hotspots         Hotspot[]
+  guidedSteps      GuidedTourStep[]
+
+  @@index([projectId])
+  @@map("avatars")
+}
