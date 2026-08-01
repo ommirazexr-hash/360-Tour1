@@ -119,27 +119,78 @@ export async function deleteAsset(id: string): Promise<void> {
 
 export async function listAssets(category?: string): Promise<any[]> {
   const db = await openDb();
-  return new Promise((resolve, reject) => {
+  
+  // 1. Get all assets from IndexedDB
+  const localAssets: StoredAsset[] = await new Promise((resolve, reject) => {
     const transaction = db.transaction(STORE_NAME, 'readonly');
-    const store = transaction.objectStore(transaction.objectStoreNames[0] || STORE_NAME);
+    const store = transaction.objectStore(STORE_NAME);
     const request = store.getAll();
     request.onerror = () => reject(request.error);
-    request.onsuccess = () => {
-      let results = request.result as StoredAsset[];
-      if (category) {
-        results = results.filter(a => a.category === category);
-      }
-      resolve(results.map(a => ({
-        id: a.id,
-        name: a.name,
-        originalName: a.name,
-        fileSize: a.file ? a.file.size : 0,
-        category: a.category,
-        url: `/uploads/${a.id}`,
-        uploadedAt: a.uploadedAt,
-      })));
-    };
+    request.onsuccess = () => resolve(request.result as StoredAsset[]);
   });
+
+  // 2. Get assets metadata from localStorage
+  const data = getRawTourData();
+  const metadataAssets = data.assets || [];
+
+  // 3. Merge: use IndexedDB Blob URL if local file is present, otherwise fallback to static server uploads path
+  const merged: any[] = [];
+
+  for (const meta of metadataAssets) {
+    const local = localAssets.find(la => la.id === meta.id);
+    if (local) {
+      const fileUrl = await resolveUrl(local.id);
+      merged.push({
+        id: local.id,
+        originalName: local.name,
+        name: local.name,
+        category: local.category,
+        fileSize: local.file.size,
+        thumbnailUrl: fileUrl,
+        optimizedUrl: fileUrl,
+        fileUrl: fileUrl,
+        createdAt: local.uploadedAt
+      });
+    } else {
+      const staticUrl = `/uploads/${meta.name}`;
+      merged.push({
+        id: meta.id,
+        originalName: meta.name,
+        name: meta.name,
+        category: meta.category,
+        fileSize: meta.fileSize || 0,
+        thumbnailUrl: staticUrl,
+        optimizedUrl: staticUrl,
+        fileUrl: staticUrl,
+        createdAt: meta.createdAt || new Date().toISOString()
+      });
+    }
+  }
+
+  // Also include any raw local assets that aren't in metadata
+  for (const local of localAssets) {
+    if (!merged.some(m => m.id === local.id)) {
+      const fileUrl = await resolveUrl(local.id);
+      merged.push({
+        id: local.id,
+        originalName: local.name,
+        name: local.name,
+        category: local.category,
+        fileSize: local.file.size,
+        thumbnailUrl: fileUrl,
+        optimizedUrl: fileUrl,
+        fileUrl: fileUrl,
+        createdAt: local.uploadedAt
+      });
+    }
+  }
+
+  let results = merged;
+  if (category) {
+    results = results.filter(a => a.category === category);
+  }
+
+  return results;
 }
 
 // Map to cache active Object URLs so we don't recreate them continuously
@@ -721,8 +772,15 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
   const data = getRawTourData();
   const assets: Array<{ id: string; name: string; blob: Blob }> = [];
 
-  // Query all assets directly from IndexedDB to ensure no files are missed
-  const dbAssets = await listAssets();
+  // Query all raw assets directly from IndexedDB (contains the file blobs)
+  const db = await openDb();
+  const dbAssets: StoredAsset[] = await new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORE_NAME, 'readonly');
+    const store = transaction.objectStore(STORE_NAME);
+    const request = store.getAll();
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => resolve(request.result as StoredAsset[]);
+  });
 
   // Rebuild the assets metadata list dynamically from IndexedDB database
   const dataAssets = dbAssets.map(a => ({
