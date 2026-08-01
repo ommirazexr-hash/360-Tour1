@@ -173,6 +173,11 @@ async function handleStandaloneDelete(path: string, params?: any): Promise<void>
     await db.deleteHotspot(parts[1]!);
     return;
   }
+  if (cleanPath.startsWith('assets/')) {
+    const parts = cleanPath.split('/');
+    await db.deleteAsset(parts[1]!);
+    return;
+  }
   
   throw new Error(`Standalone mode: DELETE path "${path}" not implemented`);
 }
