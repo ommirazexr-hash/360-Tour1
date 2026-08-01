@@ -81,26 +81,12 @@
           "pitch": 0.01042344743728485,
           "type": "IMAGE",
           "targetSceneId": null,
-          "targetAssetId": "asset_4809nygr5",
+          "targetAssetId": "asset_4m6pnmzry",
           "targetAssetUrl": null,
-          "targetUrl": "/uploads/asset_4809nygr5",
+          "targetUrl": "/uploads/asset_4m6pnmzry",
           "style": null,
           "createdAt": "2026-08-01T15:11:18.902Z",
-          "updatedAt": "2026-08-01T18:59:32.238Z",
-          "avatarId": null,
-          "avatarPlaybackMode": null,
-          "avatarPosition": null,
-          "avatarVolume": null,
-          "avatarMuted": null,
-          "avatarReplay": null,
-          "avatarPostPlaybackAction": null,
-          "avatarPostPlaybackTargetSceneId": null,
-          "avatarPostPlaybackTargetAssetId": null,
-          "avatarPostPlaybackTargetUrl": null,
-          "avatarPostPlaybackTargetNextAvatarId": null,
-          "avatarCustomPositionX": null,
-          "avatarCustomPositionY": null,
-          "avatarScale": null
+          "updatedAt": "2026-08-01T15:11:18.902Z"
         },
         {
           "id": "hotspot_8kw0h104i",
@@ -179,26 +165,12 @@
           "pitch": 0.07756048631064649,
           "type": "VIDEO",
           "targetSceneId": null,
-          "targetAssetId": "asset_nkdpfzyby",
+          "targetAssetId": "asset_bz05x48zu",
           "targetAssetUrl": null,
-          "targetUrl": "/uploads/asset_nkdpfzyby",
+          "targetUrl": "/uploads/asset_bz05x48zu",
           "style": null,
           "createdAt": "2026-08-01T15:14:20.202Z",
-          "updatedAt": "2026-08-01T18:38:32.662Z",
-          "avatarId": null,
-          "avatarPlaybackMode": null,
-          "avatarPosition": null,
-          "avatarVolume": null,
-          "avatarMuted": null,
-          "avatarReplay": null,
-          "avatarPostPlaybackAction": null,
-          "avatarPostPlaybackTargetSceneId": null,
-          "avatarPostPlaybackTargetAssetId": null,
-          "avatarPostPlaybackTargetUrl": null,
-          "avatarPostPlaybackTargetNextAvatarId": null,
-          "avatarCustomPositionX": null,
-          "avatarCustomPositionY": null,
-          "avatarScale": null
+          "updatedAt": "2026-08-01T15:14:20.202Z"
         },
         {
           "id": "hotspot_k8uanc34z",
@@ -260,12 +232,12 @@
           "pitch": 0.2721576364841538,
           "type": "VIDEO",
           "targetSceneId": null,
-          "targetAssetId": "asset_nkdpfzyby",
+          "targetAssetId": "asset_bz05x48zu",
           "targetAssetUrl": null,
-          "targetUrl": "/uploads/asset_nkdpfzyby",
+          "targetUrl": "/uploads/asset_bz05x48zu",
           "style": null,
           "createdAt": "2026-08-01T15:15:29.910Z",
-          "updatedAt": "2026-08-01T18:38:21.204Z",
+          "updatedAt": "2026-08-01T15:28:41.477Z",
           "avatarId": null,
           "avatarPlaybackMode": null,
           "avatarPosition": null,
@@ -342,6 +314,23 @@
           "avatarCustomPositionX": null,
           "avatarCustomPositionY": null,
           "avatarScale": null
+        },
+        {
+          "id": "hotspot_5pcjw1ww6",
+          "sceneId": "scene_3yx2pbm42",
+          "label": "New Hotspot",
+          "description": null,
+          "iconType": "default",
+          "yaw": 5.52973940154928,
+          "pitch": -0.0011115405412083224,
+          "type": "IMAGE",
+          "targetSceneId": null,
+          "targetAssetId": "asset_g6emdb04v",
+          "targetAssetUrl": null,
+          "targetUrl": "/uploads/asset_g6emdb04v",
+          "style": null,
+          "createdAt": "2026-08-01T19:10:45.760Z",
+          "updatedAt": "2026-08-01T19:10:45.760Z"
         }
       ]
     }
@@ -392,46 +381,11 @@
   ],
   "assets": [
     {
-      "id": "asset_4809nygr5",
-      "name": "Gemini_Generated_Image_v3dwusv3dwusv3dw.png",
+      "id": "asset_g6emdb04v",
+      "name": "archviz-snapshot-1785603834911.png",
       "category": "IMAGE",
-      "fileSize": 6055221,
-      "createdAt": "2026-08-01T18:59:27.905Z"
-    },
-    {
-      "id": "asset_e8q68sslx",
-      "name": "Gemini_Generated_Image_v3dwusv3dwusv3dw.png",
-      "category": "IMAGE",
-      "fileSize": 6055221,
-      "createdAt": "2026-08-01T18:37:59.625Z"
-    },
-    {
-      "id": "asset_nkdpfzyby",
-      "name": "full_screen_only_always_like_s.mp4",
-      "category": "VIDEO",
-      "fileSize": 2395454,
-      "createdAt": "2026-08-01T18:38:19.265Z"
-    },
-    {
-      "id": "scene_1to5q9kcj",
-      "name": "scene_1to5q9kcj.jpg",
-      "category": "PANORAMA",
-      "fileSize": 7222763,
-      "createdAt": "2026-08-01T15:09:02.293Z"
-    },
-    {
-      "id": "scene_3yx2pbm42",
-      "name": "scene_3yx2pbm42.jpg",
-      "category": "PANORAMA",
-      "fileSize": 7273102,
-      "createdAt": "2026-08-01T15:09:39.478Z"
-    },
-    {
-      "id": "scene_pu479y3tn",
-      "name": "scene_pu479y3tn.jpg",
-      "category": "PANORAMA",
-      "fileSize": 7510811,
-      "createdAt": "2026-08-01T15:09:20.477Z"
+      "fileSize": 3012500,
+      "createdAt": "2026-08-01T19:10:28.677Z"
     }
   ]
 }
