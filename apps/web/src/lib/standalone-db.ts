@@ -785,7 +785,7 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
   // Rebuild the assets metadata list dynamically from IndexedDB database
   const dataAssets = dbAssets.map(a => ({
     id: a.id,
-    name: a.name,
+    name: a.category === 'PANORAMA' ? `${a.id}.jpg` : a.name,
     category: a.category,
     fileSize: a.file ? a.file.size : 0,
     createdAt: a.uploadedAt || new Date().toISOString()
