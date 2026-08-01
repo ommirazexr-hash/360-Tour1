@@ -25,6 +25,36 @@ const nextConfig = {
       },
     ];
   },
+  async headers() {
+    return [
+      {
+        source: '/uploads/:path*',
+        headers: [
+          { key: 'Accept-Ranges', value: 'bytes' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      {
+        source: '/uploads/(.*)\\.mp4',
+        headers: [
+          { key: 'Content-Type', value: 'video/mp4' },
+          { key: 'Accept-Ranges', value: 'bytes' },
+        ],
+      },
+      {
+        source: '/uploads/(.*)\\.mp3',
+        headers: [
+          { key: 'Content-Type', value: 'audio/mpeg' },
+        ],
+      },
+      {
+        source: '/uploads/(.*)\\.webm',
+        headers: [
+          { key: 'Content-Type', value: 'video/webm' },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

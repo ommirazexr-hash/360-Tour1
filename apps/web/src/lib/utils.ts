@@ -41,8 +41,17 @@ export function getMediaUrl(url: string | null | undefined): string {
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:') || url.startsWith('blob:')) {
     return url;
   }
-  const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:4000/uploads';
   const cleanPath = url.replace(/^\//, '').replace(/^uploads\//, '');
+  
+  // In Standalone Mode, serve assets statically from the Next.js public directory
+  if (typeof window !== 'undefined') {
+    // If not configured to force normal mode, fallback to static server path
+    if (process.env.NEXT_PUBLIC_STANDALONE !== 'false' && localStorage.getItem('vt_standalone_force') !== 'false') {
+      return `/uploads/${cleanPath}`;
+    }
+  }
+
+  const uploadUrl = process.env.NEXT_PUBLIC_UPLOAD_URL || 'http://localhost:4000/uploads';
   return `${uploadUrl}/${cleanPath}`;
 }
 
