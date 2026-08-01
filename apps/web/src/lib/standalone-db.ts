@@ -826,7 +826,7 @@ export async function getViewerDataForClient(): Promise<any> {
             const panoramaUrl = await resolveUrl(scene.panoramaUrl, json.assets);
             const thumbnailUrl = await resolveUrl(scene.thumbnailUrl, json.assets);
             const resolvedHotspots = scene.hotspots ? await Promise.all(scene.hotspots.map(async (hs: any) => {
-              const targetUrl = hs.targetAssetUrl || hs.targetUrl;
+              const targetUrl = hs.targetAssetUrl || hs.targetUrl || (hs.targetAssetId ? `/uploads/${hs.targetAssetId}` : null);
               const targetAssetUrl = await resolveUrl(targetUrl, json.assets);
               return {
                 ...hs,
