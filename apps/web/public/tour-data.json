@@ -81,12 +81,12 @@
           "pitch": 0.01042344743728485,
           "type": "IMAGE",
           "targetSceneId": null,
-          "targetAssetId": "asset_e8q68sslx",
+          "targetAssetId": "asset_4809nygr5",
           "targetAssetUrl": null,
-          "targetUrl": "/uploads/asset_e8q68sslx",
+          "targetUrl": "/uploads/asset_4809nygr5",
           "style": null,
           "createdAt": "2026-08-01T15:11:18.902Z",
-          "updatedAt": "2026-08-01T18:38:05.575Z",
+          "updatedAt": "2026-08-01T18:59:32.238Z",
           "avatarId": null,
           "avatarPlaybackMode": null,
           "avatarPosition": null,
@@ -392,6 +392,13 @@
   ],
   "assets": [
     {
+      "id": "asset_4809nygr5",
+      "name": "Gemini_Generated_Image_v3dwusv3dwusv3dw.png",
+      "category": "IMAGE",
+      "fileSize": 6055221,
+      "createdAt": "2026-08-01T18:59:27.905Z"
+    },
+    {
       "id": "asset_e8q68sslx",
       "name": "Gemini_Generated_Image_v3dwusv3dwusv3dw.png",
       "category": "IMAGE",
@@ -407,21 +414,21 @@
     },
     {
       "id": "scene_1to5q9kcj",
-      "name": "Gemini_Generated_Image_efdtwwefdtwwefdt.jpg",
+      "name": "scene_1to5q9kcj.jpg",
       "category": "PANORAMA",
       "fileSize": 7222763,
       "createdAt": "2026-08-01T15:09:02.293Z"
     },
     {
       "id": "scene_3yx2pbm42",
-      "name": "Gemini_Generated_Image_fkw0wfkw0wfkw0wf.jpg",
+      "name": "scene_3yx2pbm42.jpg",
       "category": "PANORAMA",
       "fileSize": 7273102,
       "createdAt": "2026-08-01T15:09:39.478Z"
     },
     {
       "id": "scene_pu479y3tn",
-      "name": "Gemini_Generated_Image_j9k1lyj9k1lyj9k1.jpg",
+      "name": "scene_pu479y3tn.jpg",
       "category": "PANORAMA",
       "fileSize": 7510811,
       "createdAt": "2026-08-01T15:09:20.477Z"
