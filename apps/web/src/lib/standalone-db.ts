@@ -721,37 +721,25 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
   const data = getRawTourData();
   const assets: Array<{ id: string; name: string; blob: Blob }> = [];
 
-  // 1. Scan scenes to gather local IndexedDB panoramas
-  for (const scene of data.scenes) {
-    if (scene.panoramaUrl && scene.panoramaUrl.startsWith('/uploads/')) {
-      const id = scene.panoramaUrl.split('/').pop()!;
-      const blob = await getAssetBlob(id);
-      if (blob) {
-        assets.push({ id, name: `${id}.jpg`, blob });
-      }
-    }
-  }
+  // Query all assets directly from IndexedDB to ensure no files are missed
+  const dbAssets = await listAssets();
 
-  // 2. Scan all general assets uploaded in the database
-  if (data.assets && Array.isArray(data.assets)) {
-    for (const a of data.assets) {
-      // Avoid adding panorama files twice
-      if (assets.some(x => x.id === a.id)) continue;
-      
-      const blob = await getAssetBlob(a.id);
-      if (blob) {
-        assets.push({ id: a.id, name: a.name, blob });
-      }
-    }
-  }
+  // Rebuild the assets metadata list dynamically from IndexedDB database
+  const dataAssets = dbAssets.map(a => ({
+    id: a.id,
+    name: a.name,
+    category: a.category,
+    fileSize: a.file ? a.file.size : 0,
+    createdAt: a.uploadedAt || new Date().toISOString()
+  }));
 
-  // 3. Scan branding logo
-  if (data.branding.logoUrl && data.branding.logoUrl.startsWith('/uploads/')) {
-    const id = data.branding.logoUrl.split('/').pop()!;
-    if (!assets.some(x => x.id === id)) {
-      const blob = await getAssetBlob(id);
-      if (blob) {
-        assets.push({ id, name: id, blob });
+  // Package all files with their correct names and extensions
+  for (const a of dbAssets) {
+    if (a.file) {
+      if (a.category === 'PANORAMA') {
+        assets.push({ id: a.id, name: `${a.id}.jpg`, blob: a.file });
+      } else {
+        assets.push({ id: a.id, name: a.name, blob: a.file });
       }
     }
   }
@@ -762,7 +750,7 @@ export async function getTourExportPackage(): Promise<{ json: string; assets: Ar
       branding: data.branding,
       scenes: data.scenes,
       guidedTour: data.guidedTour,
-      assets: data.assets || []
+      assets: dataAssets
     }, null, 2),
     assets
   };
